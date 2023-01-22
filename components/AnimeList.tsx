@@ -4,6 +4,8 @@ import Link from "next/link"
 import SelectComponent from "./Select"
 import SearchComponent from "./SearchComponent"
 import InfiniteScroll from "react-infinite-scroller"
+import { useSearchContext } from "../store/SearchState"
+import { useGlobal } from "../store/globalState"
 
 const Card = (props) => {
    const { title, description, attributes, id } = props
@@ -31,23 +33,28 @@ const Card = (props) => {
 }
 
 const AnimeList = () => {
-   const [data, setData] = useState([])
-   const [searchresult, setSearchResult] = useState([])
-   const [search, setSearch] = useState("")
-   const [type, setType] = useState("tv")
-   const [sort, setSort] = useState("popularityRank")
-   const [status, setStatus] = useState("finished")
-   const [nextPage, setNextPage] = useState("https://kitsu.io/api/edge/anime")
+   const {
+      data,
+      setData,
+      type,
+      setType,
+      search,
+      setSearch,
+      searchresult,
+      setSearchResult,
+      sort,
+      setSort,
+      status,
+      setStatus,
+      nextPage,
+      setNextPage,
+   } = useGlobal()
 
    //env
    const url = "https://kitsu.io/api/edge/anime"
    useEffect(() => {
       getAnime(url, type, sort, status)
    }, [])
-
-   // useEffect(() => {
-   //    getSearchResults(search, status, type, sort, url)
-   // }, [search])
 
    const getAnime = (url, type, sort, status, search) => {
       axios
@@ -75,29 +82,14 @@ const AnimeList = () => {
       axios
          .get(nextPage)
          .then((response) => {
-            console.log(data)
-            console.log(response.data.data)
             setData([...data, ...response.data.data])
             setNextPage(response.data.links.next)
          })
          .catch((error) => console.log(error))
    }
 
-   const getSearchResults = (search, status, type, sort, url) => {
-      axios
-         .get(
-            `${url}?filter[text]=${search}&filter[status]=${status}&filter[subtype]=${type}&sort=${sort}&page[limit]=20&page[offset]=0`
-         )
-         .then((response) => {
-            setSearchResult(response.data.data)
-            setNextPage(response.data.links.next)
-         })
-
-         .catch((error) => console.log(error))
-   }
-
    // console.log(data, "data")
-   console.log(searchresult, "searchresult")
+   // console.log(searchresult, "searchresult")
    // console.log(search, "search")
    // console.log(nextPage, "nextPage")
    // console.log(type, "type")
@@ -105,21 +97,7 @@ const AnimeList = () => {
 
    return (
       <div>
-         <SearchComponent onChange={(e) => setSearch(e)} value={search} />
-         <button
-            onClick={() => getSearchResults(search, status, type, sort, url)}
-         >
-            search
-         </button>
-
-         <button
-            className="bg-[#63a4ff] text-white p-2 rounded-md]"
-            onClick={() => getNextSearchPage(nextPage)}
-         >
-            more
-         </button>
-
-         <h1 className="text-4xl font-bold">Recommended</h1>
+         <h1 className="my-20 text-4xl font-bold">Recommended</h1>
 
          <div className="flex space-x-4">
             <SelectComponent
@@ -142,7 +120,7 @@ const AnimeList = () => {
             />
          </div>
 
-         {data && !searchresult.length && (
+         {data && !searchresult.length ? (
             <InfiniteScroll
                pageStart={0}
                loadMore={() => getNextRecommendedPage(nextPage)}
@@ -166,8 +144,12 @@ const AnimeList = () => {
                   ))}
                </div>
             </InfiniteScroll>
+         ) : (
+            <h1>loading</h1>
          )}
-         {searchresult && (
+
+         {/* search */}
+         {/* {search && searchresult ? (
             <InfiniteScroll
                pageStart={0}
                loadMore={() => getNextSearchPage(nextPage)}
@@ -175,7 +157,7 @@ const AnimeList = () => {
                initialLoad={false}
                loader={
                   <div className="loader" key={0}>
-                     Loading ...
+                     Loading!
                   </div>
                }
             >
@@ -191,9 +173,10 @@ const AnimeList = () => {
                   ))}
                </div>
             </InfiniteScroll>
-         )}
-
-         {!data.data?.length && <h1>Loading...</h1>}
+         ) : (
+            <h1>loading</h1>
+         )} */}
+         {/* {search && !searchresult && <h1>no results</h1>} */}
       </div>
    )
 }
