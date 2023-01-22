@@ -9,7 +9,6 @@ const Home = () => {
 
    return (
       <div className="container m-auto">
-         <h1 className="text-4xl font-bold ">Hello world!</h1>
          <AnimeList />
          {/* TODO use this for the animlist routing */}
          {/* {!session ? (
