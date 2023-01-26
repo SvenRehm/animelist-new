@@ -2,8 +2,6 @@ import { useSearchContext } from "../store/SearchState"
 import { useGlobal } from "../store/globalState"
 import axios from "axios"
 export default function SearchComponent({ className }) {
-   // const [search, setSearch, searchresult, setSearchSesult] = useSearchContext()
-
    const {
       search,
       setSearch,
@@ -26,7 +24,6 @@ export default function SearchComponent({ className }) {
             setSearchResult(response.data.data)
             setNextPage(response.data.links.next)
          })
-
          .catch((error) => console.log(error))
    }
 

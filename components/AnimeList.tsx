@@ -6,6 +6,7 @@ import SearchComponent from "./SearchComponent"
 import InfiniteScroll from "react-infinite-scroller"
 import { useSearchContext } from "../store/SearchState"
 import { useGlobal } from "../store/globalState"
+import { CircleSpinner } from "react-spinners-kit"
 
 const Card = (props) => {
    const { title, description, attributes, id } = props
@@ -50,13 +51,16 @@ const AnimeList = () => {
       setNextPage,
    } = useGlobal()
 
+   const [loading, setLoading] = useState(false)
+   const [typeloading, setTypeLoading] = useState(false)
    //env
    const url = "https://kitsu.io/api/edge/anime"
    useEffect(() => {
       getAnime(url, type, sort, status)
-   }, [])
+   }, [type, sort, status])
 
    const getAnime = (url, type, sort, status, search) => {
+      setLoading(true)
       axios
          .get(
             `${url}?filter[text]=${search}?filter%5Bstatus%5D=${status}&filter%5Bsubtype%5D=${type}&page%5Blimit%5D=20&page%5Boffset%5D=0&sort=${sort}`
@@ -64,6 +68,7 @@ const AnimeList = () => {
          .then((response) => {
             setData(response.data.data)
             setNextPage(response.data.links.next)
+            setLoading(false)
          })
          .catch((error) => console.log(error))
    }
@@ -79,17 +84,19 @@ const AnimeList = () => {
    }
 
    const getNextRecommendedPage = (nextPage) => {
+      setLoading(true)
       axios
          .get(nextPage)
          .then((response) => {
             setData([...data, ...response.data.data])
             setNextPage(response.data.links.next)
+            setLoading(false)
          })
          .catch((error) => console.log(error))
    }
 
    // console.log(data, "data")
-   // console.log(searchresult, "searchresult")
+   console.log(searchresult, "searchresult")
    // console.log(search, "search")
    // console.log(nextPage, "nextPage")
    // console.log(type, "type")
@@ -106,7 +113,6 @@ const AnimeList = () => {
                onChange={setType}
                value={type}
             />
-
             <SelectComponent
                options={["popularityRank", "averageRating", "-averageRating"]}
                onChange={setSort}
@@ -119,17 +125,28 @@ const AnimeList = () => {
                value={status}
             />
          </div>
+         {typeloading && (
+            <div className="flex items-center justify-center w-full pb-20">
+               <CircleSpinner size={100} />
+            </div>
+         )}
 
-         {data && !searchresult.length ? (
+         {/* {loading && <div>Loading</div>} */}
+         {data && (
             <InfiniteScroll
                pageStart={0}
                loadMore={() => getNextRecommendedPage(nextPage)}
                hasMore={data.length <= 100}
                initialLoad={false}
                loader={
-                  <div className="loader" key={0}>
-                     Loading ...
-                  </div>
+                  loading && (
+                     <div
+                        className="flex items-center justify-center w-full pb-20"
+                        key={0}
+                     >
+                        <CircleSpinner size={100} />
+                     </div>
+                  )
                }
             >
                <div className="grid">
@@ -144,22 +161,14 @@ const AnimeList = () => {
                   ))}
                </div>
             </InfiniteScroll>
-         ) : (
-            <h1>loading</h1>
          )}
 
-         {/* search */}
-         {/* {search && searchresult ? (
+         {/* {searchresult && (
             <InfiniteScroll
                pageStart={0}
                loadMore={() => getNextSearchPage(nextPage)}
                hasMore={data.length <= 100}
                initialLoad={false}
-               loader={
-                  <div className="loader" key={0}>
-                     Loading!
-                  </div>
-               }
             >
                <div className="grid">
                   {searchresult.map((item) => (
@@ -173,10 +182,28 @@ const AnimeList = () => {
                   ))}
                </div>
             </InfiniteScroll>
-         ) : (
-            <h1>loading</h1>
          )} */}
-         {/* {search && !searchresult && <h1>no results</h1>} */}
+         {/* search */}
+         {/* {searchresult && (
+            <InfiniteScroll
+               pageStart={0}
+               loadMore={() => getNextSearchPage(nextPage)}
+               hasMore={data.length <= 100}
+               initialLoad={false}
+            >
+               <div className="grid">
+                  {searchresult.map((item) => (
+                     <Card
+                        key={item.id}
+                        id={item.id}
+                        title={item.attributes?.canonicalTitle}
+                        description={item.body}
+                        attributes={item.attributes}
+                     />
+                  ))}
+               </div>
+            </InfiniteScroll>
+         )} */}
       </div>
    )
 }
